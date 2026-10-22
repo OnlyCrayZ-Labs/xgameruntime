@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Xbox Game runtime Library
  *  GDK Component: System API -> XSystem
@@ -101,14 +102,15 @@ static HRESULT WINAPI x_system_XSystemGetXboxLiveSandboxId( IXSystemImpl5 *iface
 
     TRACE( "iface %p, sandboxIdSize %d, sandboxId %p, sandboxIdUsed %p\n", iface, sandboxIdSize, sandboxId, sandboxIdUsed );
 
-    if (!sandboxId || !sandboxIdUsed)
+    /* sandboxIdUsed is optional in the GDK contract. */
+    if (!sandboxId)
         return E_POINTER;
 
     if (sandboxIdSize < XSystemXboxLiveSandboxIdMaxBytes)
         return HRESULT_FROM_WIN32( ERROR_INSUFFICIENT_BUFFER );
 
     strcpy_s( sandboxId, sandboxIdSize, Id );
-    *sandboxIdUsed = strlen( Id ) + 1;
+    if (sandboxIdUsed) *sandboxIdUsed = strlen( Id ) + 1;
     return S_OK;
 }
 

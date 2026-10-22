@@ -1,7 +1,12 @@
+# MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 MODULE    = xgameruntime.dll
-IMPORTS   = combase
+UNIXLIB   = xgameruntime.so
+IMPORTS   = combase iphlpapi
 
 SOURCES = \
+	async.c \
+	user_bridge.c \
+	taskqueue.c \
 	main.c \
 	xaccessibility.c \
 	xaccessibility.idl \

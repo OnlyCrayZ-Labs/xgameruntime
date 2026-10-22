@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Copyright (C) the Wine project
  *
@@ -89,5 +90,21 @@
 #define E_GAMESTREAMING_CUSTOM_RESOLUTION_TOO_LARGE                 _HRESULT_TYPEDEF_(0x89245409L)
 #define E_GAMESTREAMING_CUSTOM_RESOLUTION_TOO_MANY_PIXELS           _HRESULT_TYPEDEF_(0x8924540AL)
 #define E_GAMESTREAMING_INVALID_CUSTOM_RESOLUTION                   _HRESULT_TYPEDEF_(0x8924540BL)
+
+#define E_GS_INVALID_CONTAINER_NAME                                 _HRESULT_TYPEDEF_(0x80830001L)
+#define E_GS_NO_ACCESS                                              _HRESULT_TYPEDEF_(0x80830002L)
+#define E_GS_OUT_OF_LOCAL_STORAGE                                   _HRESULT_TYPEDEF_(0x80830003L)
+#define E_GS_USER_CANCELED                                          _HRESULT_TYPEDEF_(0x80830004L)
+#define E_GS_UPDATE_TOO_BIG                                         _HRESULT_TYPEDEF_(0x80830005L)
+#define E_GS_QUOTA_EXCEEDED                                         _HRESULT_TYPEDEF_(0x80830006L)
+#define E_GS_PROVIDED_BUFFER_TOO_SMALL                              _HRESULT_TYPEDEF_(0x80830007L)
+#define E_GS_BLOB_NOT_FOUND                                         _HRESULT_TYPEDEF_(0x80830008L)
+#define E_GS_NO_SERVICE_CONFIGURATION                               _HRESULT_TYPEDEF_(0x80830009L)
+#define E_GS_CONTAINER_NOT_IN_SYNC                                  _HRESULT_TYPEDEF_(0x8083000AL)
+#define E_GS_CONTAINER_SYNC_FAILED                                  _HRESULT_TYPEDEF_(0x8083000BL)
+#define E_GS_USER_NOT_REGISTERED_IN_SERVICE                         _HRESULT_TYPEDEF_(0x8083000CL)
+#define E_GS_HANDLE_EXPIRED                                         _HRESULT_TYPEDEF_(0x8083000DL)
+#define E_GS_ASYNC_FUNCTION_REQUIRED                                _HRESULT_TYPEDEF_(0x8083000EL)
+#define E_GS_PROVIDER_MISMATCH                                      _HRESULT_TYPEDEF_(0x8083000FL)
 
 #endif

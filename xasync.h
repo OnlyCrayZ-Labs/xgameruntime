@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Copyright (C) the Wine project
  *
@@ -30,15 +31,13 @@ typedef struct XAsyncBlock XAsyncBlock;
 typedef void    __stdcall XAsyncCompletionRoutine( XAsyncBlock *asyncBlock );
 typedef HRESULT __stdcall XAsyncWork( XAsyncBlock *asyncBlock );
 
-#ifndef __WIDL__
 struct XAsyncBlock
 {
     XTaskQueueHandle queue;
     void *context;
     XAsyncCompletionRoutine *callback;
-    unsigned internal[sizeof(void*) * 4];
+    void *internal[4];
 };
-#endif
 
 #ifdef __cplusplus
 }

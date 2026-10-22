@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Xbox Game runtime Library
  *
@@ -50,9 +51,9 @@
 #include <xtaskqueue.h>
 #include <xuser.h>
 
-/* April 2026 Update 3 Release of GDK */
+/* April 2026 Release of GDK */
 #define GDKC_VERSION 10002L
-#define GAMING_SERVICES_VERSION 7874L
+#define GAMING_SERVICES_VERSION 7822L
 
 #define WIDL_using_Windows_Foundation
 #define WIDL_using_Windows_Foundation_Collections
@@ -90,3 +91,12 @@ extern IXUserImpl *x_user_impl;
 extern IXUserDeviceImpl *x_user_device_impl;
 
 HRESULT WINAPI QueryApiImpl( const GUID *classId, REFIID interfaceId, void **out );
+
+BOOL runtime_acquire(void);
+void runtime_release(void);
+void networking_cleanup(void);
+HRESULT game_identity(UINT32 *title, char *app, SIZE_T app_size);
+HRESULT game_store_id(char *id, SIZE_T size);
+HRESULT game_package_version(char *version, SIZE_T size);
+HRESULT game_package_name(char *name, SIZE_T size);
+HRESULT user_account(XUserHandle user, UINT64 *xuid);

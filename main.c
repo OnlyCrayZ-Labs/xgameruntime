@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Xbox Game runtime Library
  *
@@ -20,10 +21,28 @@
 
 #include <initguid.h>
 #include "private.h"
+#include "taskqueue_private.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(xgameruntime);
 
 DWORD tlsIndex;
+
+static SRWLOCK runtime_lock = SRWLOCK_INIT;
+static ULONG runtime_refs;
+
+/* A successful acquire pins the runtime generation until release. */
+BOOL runtime_acquire(void)
+{
+    AcquireSRWLockShared(&runtime_lock);
+    if (runtime_refs) return TRUE;
+    ReleaseSRWLockShared(&runtime_lock);
+    return FALSE;
+}
+
+void runtime_release(void)
+{
+    ReleaseSRWLockShared(&runtime_lock);
+}
 
 BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, void *reserved )
 {
@@ -53,7 +72,30 @@ struct initialize_options
 HRESULT WINAPI InitializeApiImplEx2( ULONG gdkVer, ULONG gsVer, char mode, const struct initialize_options *options )
 {
     TRACE( "gdkVer %ld, gsVer %ld, mode %d, options %p.\n", gdkVer, gsVer, mode, options );
+    AcquireSRWLockExclusive( &runtime_lock );
+    if (runtime_refs == ~(ULONG)0)
+    {
+        ReleaseSRWLockExclusive( &runtime_lock );
+        return E_OUTOFMEMORY;
+    }
+    ++runtime_refs;
+    ReleaseSRWLockExclusive( &runtime_lock );
     return S_OK;
+}
+
+void WINAPI UninitializeApiImpl( void )
+{
+    AcquireSRWLockExclusive( &runtime_lock );
+    if (runtime_refs && !--runtime_refs)
+    {
+        networking_cleanup();
+        eventless_cleanup();
+    }
+    TRACE( "%lu initialization references remaining.\n", runtime_refs );
+    /* This module owns no default queue or async executor. Queue ownership is
+     * independent: never terminate, drain, or close caller-owned queues here.
+     * In particular callbacks may still be executing on another thread. */
+    ReleaseSRWLockExclusive( &runtime_lock );
 }
 
 HRESULT WINAPI InitializeApiImplEx( ULONG gdkVer, ULONG gsVer, char mode )
@@ -66,9 +108,21 @@ HRESULT WINAPI InitializeApiImpl( ULONG gdkVer, ULONG gsVer )
     return InitializeApiImplEx2( gdkVer, gsVer, 0, NULL );
 }
 
-HRESULT WINAPI QueryApiImpl( REFCLSID clsid, REFIID iid, void **out )
+static HRESULT query_api( REFCLSID clsid, REFIID iid, void **out )
 {
     TRACE( "clsid %s, iid %s, out %p.\n", debugstr_guid( clsid ), debugstr_guid( iid ), out );
+
+    if (!out) return E_POINTER;
+    *out = NULL;
+    AcquireSRWLockShared( &runtime_lock );
+    if (!runtime_refs)
+    {
+        ReleaseSRWLockShared( &runtime_lock );
+        return E_GAMERUNTIME_NOT_INITIALIZED;
+    }
+    /* Interfaces are static singletons; releasing the lock cannot invalidate
+     * them. Their caller-owned queue handles have their own lifetime. */
+    ReleaseSRWLockShared( &runtime_lock );
 
     if (IsEqualGUID( clsid, &CLSID_XAccessibilityImpl ))
         return IXAccessibilityImpl_QueryInterface( x_accessibility_impl, iid, out );
@@ -120,4 +174,11 @@ HRESULT WINAPI QueryApiImpl( REFCLSID clsid, REFIID iid, void **out )
         return IXUserDeviceImpl_QueryInterface( x_user_device_impl, iid, out );
 
     return HRESULT_FROM_WIN32( ERROR_NOT_SUPPORTED );
+}
+
+HRESULT WINAPI QueryApiImpl(REFCLSID clsid, REFIID iid, void **out)
+{
+    HRESULT hr = query_api(clsid, iid, out);
+    TRACE("QueryApiImpl clsid %s iid %s hr %#lx.\n", debugstr_guid(clsid), debugstr_guid(iid), hr);
+    return hr;
 }

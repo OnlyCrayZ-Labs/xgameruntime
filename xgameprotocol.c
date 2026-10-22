@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Xbox Game runtime Library
  *  GDK Component: System API -> XGameProtocol
@@ -20,6 +21,7 @@
  */
 
 #include "private.h"
+#include "taskqueue_private.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(gdkc);
 
@@ -70,14 +72,22 @@ static ULONG WINAPI x_game_protocol_Release( IXGameProtocolImpl *iface )
 
 static HRESULT WINAPI x_game_protocol_XGameProtocolRegisterForActivation( IXGameProtocolImpl *iface, XTaskQueueHandle queue, void *context, XGameProtocolActivationCallback *callback, XTaskQueueRegistrationToken *token )
 {
-    FIXME( "iface %p, queue %p, context %p, callback %p, token %p stub!\n", iface, queue, context, callback, token );
-    return E_NOTIMPL;
+    HRESULT hr;
+    if (!runtime_acquire())
+    {
+        if (token) token->token = 0;
+        return E_GAMERUNTIME_NOT_INITIALIZED;
+    }
+    hr = eventless_register( EVENTLESS_GAME_PROTOCOL, queue, callback, token );
+    runtime_release();
+    TRACE( "queue %p hr %#lx token %s.\n", queue, hr, wine_dbgstr_longlong( token ? token->token : 0 ) );
+    return hr;
 }
 
 static BOOLEAN WINAPI x_game_protocol_XGameProtocolUnregisterForActivation( IXGameProtocolImpl *iface, XTaskQueueRegistrationToken token, BOOLEAN wait )
 {
-    FIXME( "iface %p, token %p, wait %d stub!\n", iface, &token, wait );
-    return TRUE;
+    TRACE( "token %s, wait %d.\n", wine_dbgstr_longlong( token.token ), wait );
+    return eventless_unregister( EVENTLESS_GAME_PROTOCOL, token );
 }
 
 static const struct IXGameProtocolImplVtbl x_game_protocol_vtbl =

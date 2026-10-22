@@ -1,3 +1,4 @@
+// MSFS 2024 compatibility modifications: 2026-10-22; see PUBLICATION-PROVENANCE.md.
 /*
  * Copyright (C) the Wine project
  *
@@ -51,7 +52,6 @@ cpp_quote("enum class XPackageKind : UINT32")
 cpp_quote("{                               ")
 cpp_quote("    Game,                       ")
 cpp_quote("    Content,                    ")
-cpp_quote("    PublisherContent,           ")
 cpp_quote("};                              ")
 
 cpp_quote("#elif defined(__WINESRC__)")
@@ -83,7 +83,6 @@ typedef enum XPackageKind
 {
     XPackageKind_Game,
     XPackageKind_Content,
-    XPackageKind_PublisherContent,
 } XPackageKind;
 
 cpp_quote("#endif")
@@ -187,15 +186,15 @@ interface IXPackageImpl : IUnknown
     HRESULT __PADDING__();
     HRESULT __PADDING_2__();
     BOOLEAN XPackageUnregisterPackageInstalled( [in] XTaskQueueRegistrationToken token, [in] BOOLEAN wait );
-    HRESULT XPackageMount( [in, string] const char *packageIdentifier, [out] XPackageMountHandle *mount );
+    HRESULT __PADDING_3__();
     HRESULT XPackageGetMountPathSize( [in] XPackageMountHandle mount, [out] SIZE_T *pathSize );
     HRESULT XPackageGetMountPath( [in] XPackageMountHandle mount, [in] SIZE_T pathSize, [out, size_is(pathSize)] char *path );
     void    XPackageCloseMountHandle( [in] XPackageMountHandle mount );
-    HRESULT __PADDING_3__();
+    HRESULT __PADDING_4__();
     HRESULT XPackageEnumeratePackages( [in] XPackageKind kind, [in] XPackageEnumerationScope scope, [in, optional] void *context, [in] XPackageEnumerationCallback *callback );
     HRESULT XPackageRegisterPackageInstalled( [in] XTaskQueueHandle queue, [in, optional] void *context, [in] XPackageInstalledCallback *callback, [out] XTaskQueueRegistrationToken *token );
     HRESULT XPackageGetWriteStats( [out] XPackageWriteStats *writeStats );
-    HRESULT __PADDING_4__();
+    HRESULT __PADDING_5__();
     HRESULT XPackageUninstallUWPInstance( [in, string] const char *packageName );
     HRESULT XPackageEnumerateFeatures( [in, string] const char *packageIdentifier, [in, optional] void *context, [in] XPackageFeatureEnumerationCallback *callback );
     BOOLEAN XPackageUninstallPackage( [in, string] const char *packageIdentifier );
@@ -226,21 +225,11 @@ interface IXPackageImpl3 : IXPackageImpl2
 }
 
 [
-    local,
-    object,
-    uuid(0b9d556e-ab70-43f4-baa0-9999ac4cb040)
-]
-interface IXPackageImpl4 : IXPackageImpl3
-{
-    HRESULT XPackageGetKind( [in, string] const char *packageIdentifier, [out] XPackageKind *kind );
-}
-
-[
     uuid(af406016-e850-4aa8-a88d-2f3dcb9dac7e)
 ]
 coclass XPackageImpl
 {
-    [default] interface IXPackageImpl4;
+    [default] interface IXPackageImpl3;
 }
 
 cpp_quote("#endif")
